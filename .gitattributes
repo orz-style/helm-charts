@@ -1,2 +1,4 @@
 .gitattributes export-ignore
 README.md export-ignore
+charts export-ignore
+.github export-ignore
