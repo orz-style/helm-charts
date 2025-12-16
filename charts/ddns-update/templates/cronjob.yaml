@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "ddns-update.fullname" . }}
+  labels:
+    {{- include "ddns-update.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      completions: {{ .Values.job.completions }}
+      parallelism: 1
+      backoffLimit: {{ .Values.job.backoffLimit }}
+      template:
+        spec:
+          imagePullSecrets:
+            {{- toYaml .Values.imagePullSecrets | nindent 12 }}
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: DNS_ZONE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "ddns-update.fullname" . }}
+                      key: dns-zone
+                - name: TZ
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "ddns-update.fullname" . }}
+                      key: timezone
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ default (include "ddns-update.fullname" . ) .Values.secret.existingSecret }}
+                      key:  {{ default "aws_access_key_id" (.Values.secret.aws_access_key_id).secretKey }}
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ default (include "ddns-update.fullname" .) .Values.secret.existingSecret }}
+                      key:  {{ default "aws_secret_access_key" (.Values.secret.aws_secret_access_key).secretKey }}
+
+              volumeMounts:
+                - mountPath: "/opt/ddns-update/data"
+                  name: {{ include "ddns-update.fullname" . }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+            - name: {{ include "ddns-update.fullname" . }}
+              persistentVolumeClaim:
+                claimName: {{ include "ddns-update.fullname" . }}
+                readOnly: false
+          restartPolicy: Never
