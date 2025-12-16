@@ -1,0 +1,19 @@
+apiVersion: v1
+entries:
+  ddns-update:
+  - apiVersion: v2
+    appVersion: 2.2.0
+    created: "2025-12-16T13:23:18.492214462Z"
+    description: A Helm chart for DynamicDNSUpdate
+    digest: a7029993493227f24d450a1a29d4a1086f8de1138501c48cac69a557292f0a37
+    icon: https://orz-style.github.io/helm-charts/orz-style_logo.png
+    maintainers:
+    - name: Taku Izumi
+    name: ddns-update
+    sources:
+    - https://github.com/orz-style/DynamicDNSUpdate
+    type: application
+    urls:
+    - https://github.com/orz-style/helm-charts/releases/download/ddns-update-2.0.0/ddns-update-2.0.0.tgz
+    version: 2.0.0
+generated: "2025-12-16T13:23:18.492224892Z"
